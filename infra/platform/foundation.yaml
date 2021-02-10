@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  TurkanaDomainNameParameter:
+    Type: String
+    Default: thesubdomain.yourdomain.com
+    Description: Assuming yourdomain.com is yours, thesubdomain.yourdomain.com will be created as an Api Gateway Custom Domain. 
+
+  TurkanaRegionalCertificateArnParameter:
+    Type: String
+    Default: arn:aws:acm:...
+    Description: The Regional Certificate Arn from Certificate Manager. 
+
+  TurkanaHostedZoneIdParameter:
+    Type: String
+    Default: hostedZoneId
+    Description: The Hosted ZoneId of yourdomain.com
+
+  TurkanaEnvironmentParameter:
+    Type: String
+    Default: prod
+    Description: The environment to spin (logically isolates the stacks)
+
+  TurkanaEnableApiGatewayLogging:
+    Type: String
+    Default: true
+    Description: Enable logging for API Gateway
+
+Conditions:
+  CreateApiGatewayCloudWatchResources: !Equals 
+    - !Ref TurkanaEnableApiGatewayLogging
+    - true
+
+Resources:
+  RecordSetGroup:
+    Type: 'AWS::Route53::RecordSetGroup'
+    Properties:
+      HostedZoneId: 
+        Ref: TurkanaHostedZoneIdParameter
+      RecordSets:
+        - AliasTarget:
+            HostedZoneId: !GetAtt 
+              - ApiGatewayDomainName
+              - RegionalHostedZoneId
+            DNSName: !GetAtt 
+              - ApiGatewayDomainName
+              - RegionalDomainName
+          Type: A
+          Name: 
+            Ref: TurkanaDomainNameParameter
+
+  ApiGatewayDomainName:
+    Type: 'AWS::ApiGateway::DomainName'
+    Properties:
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      RegionalCertificateArn: 
+        Ref: TurkanaRegionalCertificateArnParameter
+      DomainName: 
+        Ref: TurkanaDomainNameParameter
+
+  ApiGatewayCloudWatchLogRole:
+    Type: AWS::IAM::Role
+    Condition: CreateApiGatewayCloudWatchResources
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - >-
+          arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+  ApiGatewayCloudWatchAccount:
+    Type: 'AWS::ApiGateway::Account'
+    Condition: CreateApiGatewayCloudWatchResources
+    Properties:
+      CloudWatchRoleArn: !GetAtt 
+        - ApiGatewayCloudWatchLogRole
+        - Arn
+
+  LambdaBasicIamRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+
+Outputs:
+  TurkanaDomainName:
+    Description: "Domain Name"
+    Value: !Sub "${TurkanaDomainNameParameter}"
+    Export: 
+      Name: !Sub "turkana-${TurkanaEnvironmentParameter}-domain-name"
+
+  TurkanaLambdaBasicIamRoleArn:
+    Description: "Basic Lambda IAM Role Arn"
+    Value: !GetAtt LambdaBasicIamRole.Arn
+    Export: 
+      Name: !Sub "turkana-${TurkanaEnvironmentParameter}-lambda-basic-iam-role-arn"

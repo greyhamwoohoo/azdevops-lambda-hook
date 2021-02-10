@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  TurkanaS3BucketNameParameter:
+    Type: String
+    Default: some-bucket-that-does-not-exist-globally-98324yu98wehfiuedfhiuh43iurhweiufhiuerrf
+    Description: Default S3 Bucket Name
+
+Resources:
+
+  # Design Decision: The 'root' bucket-name is related to the project (turkana)
+  #                  The bucket will hold the Lambda code
+  #                  By managing the bucket, we can IaC the permissions and detect drift. 
+  #                  
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub "${TurkanaS3BucketNameParameter}"
+
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    DependsOn: S3Bucket
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: 's3:GetObject'
+            Principal: 
+              Service: "serverlessrepo.amazonaws.com"
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref S3Bucket
+                - /*              
+
+Outputs:
+  TurkanaRootS3BucketName:
+    Description: "Root name of the S3 Bucket for this application"
+    Value: !Sub "${TurkanaS3BucketNameParameter}"
+    Export: 
+      Name: !Sub "turkana-s3bucket-name"

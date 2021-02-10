@@ -1,0 +1,22 @@
+[
+    {
+      "ParameterKey": "TurkanaDomainNameParameter",
+      "ParameterValue": "TODO:thesubdomain.yourdomain.com (managed by Route53 in the same account)"
+    }, 
+    {
+      "ParameterKey": "TurkanaRegionalCertificateArnParameter",
+      "ParameterValue": "TODO:arn:aws:acm:..."
+    }, 
+    {
+      "ParameterKey": "TurkanaHostedZoneIdParameter",
+      "ParameterValue": "TODO:Hosted Zone Id (ie: the Hosted Zone ID of yourdomain.com)"
+    }, 
+    {
+      "ParameterKey": "TurkanaEnvironmentParameter",
+      "ParameterValue": "TODO:Prod,Dev,Stage or whatever"
+    },
+    {
+      "ParameterKey": "TurkanaEnableApiGatewayLogging",
+      "ParameterValue": "false"
+    }    
+]

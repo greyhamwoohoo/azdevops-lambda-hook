@@ -1,0 +1,27 @@
+{
+    "name": "turkana-infrastructure",
+    "version": "1.0.0",
+    "description": "Azure DevOps Hook and Cloudformation Infrastructure",
+    "author": "Greyhamwoohoo",
+    "license": "MIT",
+    "dependencies": {
+    },
+    "scripts": {
+      "globals:ready": "count=$(aws cloudformation list-stacks --output json --query \"length(StackSummaries[?StackName=='turkana-globals' && StackStatus=='CREATE_COMPLETE'])\"); if [ $count -eq 1 ]; then echo \"True\"; else echo \"False\";  fi",
+      "globals:s3bucketname": "aws cloudformation list-exports --query \"Exports[?Name=='turkana-s3bucket-name'].Value | [0]\" --output text",
+      "globals:create": "aws cloudformation create-stack --stack-name turkana-globals --template-body file://infra/globals/globals.yaml --parameters file://infra/globals/globals.parameters.json --capabilities CAPABILITY_IAM && aws cloudformation wait stack-create-complete --stack-name turkana-globals",
+      "globals:update": "aws cloudformation update-stack --stack-name turkana-globals --template-body file://infra/globals/globals.yaml --parameters file://infra/globals/globals.parameters.json --capabilities CAPABILITY_IAM && aws cloudformation wait stack-update-complete --stack-name turkana-globals",
+      
+      "prod:platform:ready": "count=$(aws cloudformation list-stacks --output json --query \"length(StackSummaries[?StackName=='turkana-prod-platform' && StackStatus=='CREATE_COMPLETE'])\"); if [ $count -eq 1 ]; then echo \"True\"; else echo \"False\";  fi",
+      "prod:platform:create": "aws cloudformation create-stack --stack-name turkana-prod-platform --template-body file://infra/platform/foundation.yaml --parameters file://infra/platform/foundation.parameters.prod.json --capabilities CAPABILITY_IAM && aws cloudformation wait stack-create-complete --stack-name turkana-prod-platform",
+      "prod:platform:update": "aws cloudformation update-stack --stack-name turkana-prod-platform --template-body file://infra/platform/foundation.yaml --parameters file://infra/platform/foundation.parameters.prod.json --capabilities CAPABILITY_IAM && aws cloudformation wait stack-update-complete --stack-name turkana-prod-platform",
+      "prod:platform:destroy": "aws cloudformation delete-stack --stack-name turkana-prod-platform && aws cloudformation wait stack-delete-complete --stack-name turkana-prod-platform",
+
+      "dev:platform:ready": "count=$(aws cloudformation list-stacks --output json --query \"length(StackSummaries[?StackName=='turkana-dev-platform' && StackStatus=='CREATE_COMPLETE'])\"); if [ $count -eq 1 ]; then echo \"True\"; else echo \"False\";  fi",
+      "dev:platform:create": "aws cloudformation create-stack --stack-name turkana-dev-platform --template-body file://infra/platform/foundation.yaml --parameters file://infra/platform/foundation.parameters.dev.json --capabilities CAPABILITY_IAM && aws cloudformation wait stack-create-complete --stack-name turkana-dev-platform",
+      "dev:platform:update": "aws cloudformation update-stack --stack-name turkana-dev-platform --template-body file://infra/platform/foundation.yaml --parameters file://infra/platform/foundation.parameters.dev.json --capabilities CAPABILITY_IAM && aws cloudformation wait stack-update-complete --stack-name turkana-dev-platform",
+      "dev:platform:destroy": "aws cloudformation delete-stack --stack-name turkana-dev-platform && aws cloudformation wait stack-delete-complete --stack-name turkana-dev-platform"
+    },
+    "devDependencies": {
+    }
+}
