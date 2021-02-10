@@ -1,0 +1,31 @@
+{
+  "name": "azdev-adapter-webhook",
+  "version": "1.0.0",
+  "description": "Azure DevOps Adapter Webhook",
+  "main": "app.js",
+  "author": "Greyhamwoohoo",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "sinon": "^9.2.4"
+  },
+  "scripts": {
+    "test:unit": "mocha tests/unit/",
+    "tdd:unit": "nodemon --legacy-watch '*.js' --legacy-watch 'tests/unit/**/*' --exec 'npm run test:unit'",
+    "clean": "rm azdev-adapter-webhook.zip -f",
+    "build": "npm install",
+    "pack": "npm-pack-zip",
+    "prod:lambda:push-to-s3": " s3bucketname=$(aws cloudformation list-exports --query \"Exports[?Name=='turkana-s3bucket-name'].Value | [0]\" --output text) && aws s3 cp azdev-adapter-webhook.zip s3://${s3bucketname}/private/prod/azdev-adapter-webhook/azdev-adapter-webhook.zip",
+    "prod:lambda:update": "npm run clean && npm run build && npm run pack && npm run prod:lambda:push-to-s3 && arn=$(aws cloudformation list-exports --query \"Exports[?Name=='turkana-prod-prod-azdev-adapter-webhook-arn'].Value | [0]\" --output text) && aws lambda update-function-code --function-name ${arn} --zip-file fileb://azdev-adapter-webhook.zip",
+    "prod:lambda:pre-seed": "npm run clean && npm run build && npm run pack && npm run prod:lambda:push-to-s3",
+    "dev:lambda:push-to-s3": " s3bucketname=$(aws cloudformation list-exports --query \"Exports[?Name=='turkana-s3bucket-name'].Value | [0]\" --output text) && aws s3 cp azdev-adapter-webhook.zip s3://${s3bucketname}/private/dev/azdev-adapter-webhook/azdev-adapter-webhook.zip",
+    "dev:lambda:update": "npm run clean && npm run build && npm run pack && npm run dev:lambda:push-to-s3 && arn=$(aws cloudformation list-exports --query \"Exports[?Name=='turkana-dev-prod-azdev-adapter-webhook-arn'].Value | [0]\" --output text) && aws lambda update-function-code --function-name ${arn} --zip-file fileb://azdev-adapter-webhook.zip",
+    "dev:lambda:pre-seed": "npm run clean && npm run build && npm run pack && npm run dev:lambda:push-to-s3"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.815.0",
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1",
+    "npm-pack-zip": "^1.2.7"
+  }
+}

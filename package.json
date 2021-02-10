@@ -20,7 +20,21 @@
       "dev:platform:ready": "count=$(aws cloudformation list-stacks --output json --query \"length(StackSummaries[?StackName=='turkana-dev-platform' && StackStatus=='CREATE_COMPLETE'])\"); if [ $count -eq 1 ]; then echo \"True\"; else echo \"False\";  fi",
       "dev:platform:create": "aws cloudformation create-stack --stack-name turkana-dev-platform --template-body file://infra/platform/foundation.yaml --parameters file://infra/platform/foundation.parameters.dev.json --capabilities CAPABILITY_IAM && aws cloudformation wait stack-create-complete --stack-name turkana-dev-platform",
       "dev:platform:update": "aws cloudformation update-stack --stack-name turkana-dev-platform --template-body file://infra/platform/foundation.yaml --parameters file://infra/platform/foundation.parameters.dev.json --capabilities CAPABILITY_IAM && aws cloudformation wait stack-update-complete --stack-name turkana-dev-platform",
-      "dev:platform:destroy": "aws cloudformation delete-stack --stack-name turkana-dev-platform && aws cloudformation wait stack-delete-complete --stack-name turkana-dev-platform"
+      "dev:platform:destroy": "aws cloudformation delete-stack --stack-name turkana-dev-platform && aws cloudformation wait stack-delete-complete --stack-name turkana-dev-platform",
+
+      "prod:app:pre-seed": "(cd src/azdev-adapter-webhook && npm run prod:lambda:pre-seed)",
+
+      "dev:app:pre-seed": "(cd src/azdev-adapter-webhook && npm run dev:lambda:pre-seed)",
+
+      "prod:app:ready": "count=$(aws cloudformation list-stacks --output json --query \"length(StackSummaries[?StackName=='turkana-prod-application' && StackStatus=='CREATE_COMPLETE'])\"); if [ $count -eq 1 ]; then echo \"True\"; else echo \"False\";  fi",      
+      "prod:app:create": "aws cloudformation create-stack --stack-name turkana-prod-application --template-body file://infra/application/application.yaml --capabilities CAPABILITY_IAM --parameters file://infra/application/application.parameters.prod.json && aws cloudformation wait stack-create-complete --stack-name turkana-prod-application",
+      "prod:app:update": "aws cloudformation update-stack --stack-name turkana-prod-application --template-body file://infra/application/application.yaml --capabilities CAPABILITY_IAM --parameters file://infra/application/application.parameters.prod.json && aws cloudformation wait stack-update-complete --stack-name turkana-prod-application",
+      "prod:app:destroy": "aws cloudformation delete-stack --stack-name turkana-prod-application && aws cloudformation wait stack-delete-complete --stack-name turkana-prod-application",
+
+      "dev:app:ready": "count=$(aws cloudformation list-stacks --output json --query \"length(StackSummaries[?StackName=='turkana-dev-application' && StackStatus=='CREATE_COMPLETE'])\"); if [ $count -eq 1 ]; then echo \"True\"; else echo \"False\";  fi",      
+      "dev:app:create": "aws cloudformation create-stack --stack-name turkana-dev-application --template-body file://infra/application/application.yaml --capabilities CAPABILITY_IAM --parameters file://infra/application/application.parameters.dev.json && aws cloudformation wait stack-create-complete --stack-name turkana-dev-application",
+      "dev:app:update": "aws cloudformation update-stack --stack-name turkana-dev-application --template-body file://infra/application/application.yaml --capabilities CAPABILITY_IAM --parameters file://infra/application/application.parameters.dev.json && aws cloudformation wait stack-update-complete --stack-name turkana-dev-application",
+      "dev:app:destroy": "aws cloudformation delete-stack --stack-name turkana-dev-application && aws cloudformation wait stack-delete-complete --stack-name turkana-dev-application"            
     },
     "devDependencies": {
     }

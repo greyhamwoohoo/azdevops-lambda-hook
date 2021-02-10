@@ -1,0 +1,146 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  TurkanaStageParameter:
+    Type: String
+    Default: prod
+    Description: The stage of the Lambda (Prod, Stage, whatever). 
+  TurkanaEnvironmentParameter:
+    Type: String
+    Default: prod
+    Description: Test environment name. Lower case. Alphanumeric only. Use the same value here as used for platform.yaml; this will 'wire up' the Lambda to that stack. 
+  TurkanaAzDevAdapterWebhookApiKey:
+    Type: String
+    Default: someKey
+    Description: "API Key for the Webhook Callback. This value is required to be passed as a Header of the form: x-api-key: theValue"
+
+Resources:
+
+  #
+  # azdev-adapter-webhook: Plan
+  #  
+  AzDevAdapterWebhookUsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    DependsOn: 
+      - AzDevAdapterWebhookApiKey
+      - AzDevAdapterWebhookApiGatewayUsagePlan
+    Properties: 
+      KeyId: !Ref AzDevAdapterWebhookApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref AzDevAdapterWebhookApiGatewayUsagePlan  
+
+  AzDevAdapterWebhookApiKey:
+    Type: 'AWS::ApiGateway::ApiKey'
+    DependsOn:
+      - AzDevAdapterWebhookApiGatewayLambdaDeployment
+      - AzDevAdapterWebhookApiGatewayStage
+    Properties:
+      Enabled: true
+      Description: Cloudformation API Key for Azure DevOps Webhook
+      Value: !Sub ${ TurkanaAzDevAdapterWebhookApiKey }
+
+  AzDevAdapterWebhookApiGatewayUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn: 
+      - AzDevAdapterWebhookApiGatewayFunctionRestApi
+      - AzDevAdapterWebhookApiGatewayStage
+    Properties: 
+      ApiStages: 
+        - ApiId: !Ref AzDevAdapterWebhookApiGatewayFunctionRestApi
+          Stage: !Ref AzDevAdapterWebhookApiGatewayStage
+      Description: Azure DevOps Webhook Plan
+      Quota: 
+        Limit: 10000
+        Period: MONTH
+      Throttle: 
+        BurstLimit: 40
+        RateLimit: 20
+      UsagePlanName: azdev-webhook-usage-plan
+
+  #
+  # azdev-adapter-webhook: Api
+  #
+  AzDevAdapterWebhookLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: 
+          Fn::ImportValue:
+            !Sub "turkana-s3bucket-name"
+        S3Key: !Sub private/${ TurkanaEnvironmentParameter }/azdev-adapter-webhook/azdev-adapter-webhook.zip
+      FunctionName: !Sub turkana-${ TurkanaEnvironmentParameter }-${ TurkanaStageParameter }-azdev-adapter-webhook
+      Handler: app.lambdaHandler
+      Role:
+        Fn::ImportValue:
+          !Sub "turkana-${ TurkanaEnvironmentParameter }-lambda-basic-iam-role-arn"
+      Timeout: 3
+      Runtime: nodejs12.x
+
+  AzDevAdapterWebhookPostWebhookLambdaInvokeFunctionPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref AzDevAdapterWebhookLambdaFunction
+      SourceArn: !Sub 
+        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${__ApiId__}/${__Stage__}/POST/webhook
+        - __Stage__: '*'
+          __ApiId__: !Ref AzDevAdapterWebhookApiGatewayFunctionRestApi          
+
+  AzDevAdapterWebhookApiGatewayFunctionRestApi:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Body:
+        info:
+          version: '1.0'
+          title: !Sub "turkana-${ TurkanaEnvironmentParameter }-${ TurkanaStageParameter }-azdev-adapter-webhook-rest-api"
+        x-amazon-apigateway-api-key-source : "HEADER"
+        paths:
+          /webhook:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub >-
+                  arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AzDevAdapterWebhookLambdaFunction.Arn}/invocations
+              responses: {}
+              security: 
+              - apiKeyRequired: []                
+
+        securityDefinitions:
+          apiKeyRequired:
+            type: apiKey
+            name: x-api-key
+            in: header
+
+        swagger: '2.0'          
+
+  AzDevAdapterWebhookApiGatewayFunctionRestApiBasePathMapping:
+    Type: 'AWS::ApiGateway::BasePathMapping'
+    Properties:
+      BasePath: v1
+      DomainName:
+        Fn::ImportValue:
+          !Sub "turkana-${ TurkanaEnvironmentParameter }-domain-name"
+      RestApiId: !Ref AzDevAdapterWebhookApiGatewayFunctionRestApi
+      Stage: !Ref AzDevAdapterWebhookApiGatewayStage
+
+  AzDevAdapterWebhookApiGatewayLambdaDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    Properties:
+      RestApiId: !Ref AzDevAdapterWebhookApiGatewayFunctionRestApi
+      Description: 'RestApi deployment for Lambda'
+
+  AzDevAdapterWebhookApiGatewayStage:
+    Type: 'AWS::ApiGateway::Stage'
+    Properties:
+      DeploymentId: !Ref AzDevAdapterWebhookApiGatewayLambdaDeployment
+      RestApiId: !Ref AzDevAdapterWebhookApiGatewayFunctionRestApi
+      StageName: !Sub ${ TurkanaStageParameter }
+
+Outputs:
+  TurkanaAzDevAdapterWebhookArn:
+    Description: "Arn of the Function for this (TurkanaEnvironment,TurkanaStage,Function)"
+    Value: !GetAtt AzDevAdapterWebhookLambdaFunction.Arn
+    Export: 
+      Name: !Sub "turkana-${ TurkanaEnvironmentParameter }-${ TurkanaStageParameter }-azdev-adapter-webhook-arn"

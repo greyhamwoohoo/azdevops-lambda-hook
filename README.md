@@ -12,6 +12,7 @@ The following lifecycle is adopted based on lifecycle, ownership and the frequen
 | ----- | ------------------------------------- | ------------------------ | -------------------- |
 | 0     | Globals Loop                          | Admin                    | Admin                |
 | 1     | Platform Loop                         | Admin                    | Admin                |
+| 2     | Application Loop                      | Admin                    | Admin                |
 
 ## Layer 0: Globals  Loop
 The Globals loop is used for bootstrapping resources to be managed by Cloudformation but shared by multiple stacks (or projects). 
@@ -42,6 +43,28 @@ The following commands are available:
 | Create the Platform stack (and wait)    | ```npm run dev:platform:create```  | ```npm run prod:platform:create```  |
 | Update the Platform stack (and wait)    | ```npm run dev:platform:update```  | ```npm run prod:platform:update```  |
 | Destroy the Platform stacK (and wait)   | ```npm run dev:platform:destroy``` | ```npm run prod:platform:destroy``` |
+
+## Layer 2: Application Loop
+The Application Infrastructure is any infrastructure related to the application: Lambda Functions, Roles, Buckets, Databases...
+
+### Layer 2.1: Seeding: Application Loop
+To spin up Lambda Functions using Cloudformation, the Lambda zip must already exist in an S3 Bucket. 
+
+The Pre-Application Loop will create the Lambdas and publish them to the correct bucket. 
+
+| Description                             | dev                                | prod                                |
+| ----------------------------------------| -----------------------------------| ----------------------------------- |
+| Pre-seed the application                | ```npm run dev:app:pre-seed```     | ```npm run prod:app:pre-seed```     |
+
+## Layer 2.2: Application Loop
+The Application Loop contains the Cloudformation required to spin up Lambdas, Roles, Certificates etc. Everything application related. 
+
+| Description                                   | dev                            | prod                           |
+| ----------------------------------------------| ------------------------------ |------------------------------- |
+| Check if the Application is up and running    | ```npm run dev:app:ready```    | ```npm run prod:app:ready```   |
+| Create the Application stack (and wait)       | ```npm run dev:app:create```   | ```npm run prod:app:create```  |
+| Update the Application stack  (and wait)      | ```npm run dev:app:update```   | ```npm run prod:app:update```  |
+| Destroy the Application stacK (and wait)      | ```npm run dev:app:destroy```  | ```npm run prod:app:destroy``` |
 
 # Local Development (VsCode)
 To unify the experience between Mac, Linux and Windows, use the following VsCode Addin for all development on Windows (and optionally on Linux):

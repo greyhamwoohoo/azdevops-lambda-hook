@@ -1,0 +1,10 @@
+[
+    {
+      "ParameterKey": "TurkanaEnvironmentParameter",
+      "ParameterValue": "prod - or whatever your environment is"
+    },
+    {
+      "ParameterKey": "TurkanaAzDevAdapterWebhookApiKey",
+      "ParameterValue": "thisIsTheApiKeyForYourEnvironment"
+    }    
+]
