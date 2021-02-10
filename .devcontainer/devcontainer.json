@@ -1,0 +1,19 @@
+{
+    "name": "AWS CLI Development Container",
+    "dockerFile": "Dockerfile",
+  
+    "settings": {
+      "terminal.integrated.shell.linux": "/bin/bash"
+    },
+
+    "containerEnv": {
+      "AWS_ACCESS_KEY_ID": "${localEnv:AWS_ACCESS_KEY_ID}",
+      "AWS_REGION": "${localEnv:AWS_REGION}",
+      "AWS_SECRET_ACCESS_KEY": "${localEnv:AWS_SECRET_ACCESS_KEY}"
+    },
+    "remoteEnv": {
+      "AWS_ACCESS_KEY_ID": "${localEnv:AWS_ACCESS_KEY_ID}",
+      "AWS_REGION": "${localEnv:AWS_REGION}",
+      "AWS_SECRET_ACCESS_KEY": "${localEnv:AWS_SECRET_ACCESS_KEY}"
+    }
+}
