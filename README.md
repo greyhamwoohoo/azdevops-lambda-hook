@@ -1,25 +1,29 @@
 # azdevops-lambda-hook
-An Azure DevOps ServiceHook implemented as a Lambda on AWS using a Cloudformation Stack per "environment" (dev/prod).
+An Azure DevOps ServiceHook implemented as a NodeJS Lambda on AWS using Cloudformation. 
 
-Shows an opinionated way to work with AWS Cloudformation and Lambas by using "Layers" separated by Lifecyle and Ownership. 
+The Lambda is exposed using HTTPS via a subdomain (ie: dev-turkana.greyhamwoohoo.com/v1/webhook, turkana.greyhamwoohoo.com/v1/webhook) and requires an API Key. Each 'environment' can have its own sub-domain. 
+
+Shows an opinionated way to work with AWS Cloudformation and Lambas by using "Layers" separated by Lifecyle and Ownership.
 
 The components are called 'Turkana' so references are easy to replace in future :)
+
+Design decision: 100% Cloudformation. No SAM CLI, no Serverless, no Terraform. 
 
 # Workflow
 The following lifecycle is adopted based on lifecycle, ownership and the frequency of change:
 
-| Layer | Activity                              | Typical Owner (Non-Prod) | Typical Owner (Prod) |
-| ----- | ------------------------------------- | ------------------------ | -------------------- |
-| 0     | Globals Loop                          | Admin                    | Admin                |
-| 1     | Platform Loop                         | Admin                    | Admin                |
-| 2     | Application Loop                      | Admin                    | Admin                |
-| 3     | Component Loop                        | Anyone                   | N/A                  |
-| 4     | Local Development Loop                | Anyone                   | N/A                  |
+| Layer | Activity                              | Typical Owner (Non-Prod) | Typical Owner (Prod) | Scope           |
+| ----- | ------------------------------------- | ------------------------ | -------------------- | --------------- |
+| 0     | Globals Loop                          | Admin                    | Admin                | Global          |
+| 1     | Platform Loop                         | Admin                    | Admin                | Per environment |
+| 2     | Application Loop                      | Admin                    | Admin                | Per environment |
+| 3     | Component Loop                        | Anyone                   | N/A                  | Per component   |
+| 4     | Local Development Loop                | Anyone                   | N/A                  | Per component   |
 
 ## Layer 0: Globals  Loop
-The Globals loop is used for bootstrapping resources to be managed by Cloudformation but shared by multiple stacks (or projects). 
+The Globals loop is used for bootstrapping resources to be managed by Cloudformation. 
 
-There is only a single resources in our case: an S3 Bucket. 
+There is only a single resources in our case: an S3 Bucket. We use it for storing the Lambda .Zip files for each environment. 
 
 The following commands are available:
 
