@@ -14,6 +14,7 @@
     "tdd:unit": "nodemon --legacy-watch '*.js' --legacy-watch 'tests/unit/**/*' --exec 'npm run test:unit'",
     "clean": "rm azdev-adapter-webhook.zip -f",
     "build": "npm install",
+    "ci:build": "npm install --loglevel=error",
     "pack": "npm-pack-zip",
     "prod:lambda:push-to-s3": " s3bucketname=$(aws cloudformation list-exports --query \"Exports[?Name=='turkana-s3bucket-name'].Value | [0]\" --output text) && aws s3 cp azdev-adapter-webhook.zip s3://${s3bucketname}/private/prod/azdev-adapter-webhook/azdev-adapter-webhook.zip",
     "prod:lambda:update": "npm run clean && npm run build && npm run pack && npm run prod:lambda:push-to-s3 && arn=$(aws cloudformation list-exports --query \"Exports[?Name=='turkana-prod-prod-azdev-adapter-webhook-arn'].Value | [0]\" --output text) && aws lambda update-function-code --function-name ${arn} --zip-file fileb://azdev-adapter-webhook.zip",

@@ -1,0 +1,44 @@
+trigger: none
+pr: none
+    
+name: 1.0$(Rev:.r)
+
+stages:
+- stage: BuildAndPublish
+  jobs:
+  - job: BuildLambda
+    displayName: Build Azure DevOps Lambda
+    pool:
+      vmImage: ubuntu-18.04
+
+    container: node:12-buster
+
+    steps:
+    - task: Bash@3
+      displayName: build
+      inputs:
+        targetType: 'inline'
+        script: npm run ci:build
+        workingDirectory: src/azdev-adapter-webhook
+        failOnStderr: true
+
+    - task: Bash@3
+      displayName: npm run test:unit
+      inputs:
+        targetType: 'inline'
+        script: npm run test:unit
+        workingDirectory: src/azdev-adapter-webhook
+        failOnStderr: true
+
+    - task: Bash@3
+      displayName: npm run pack
+      inputs:
+        targetType: 'inline'
+        script: npm run pack
+        workingDirectory: src/azdev-adapter-webhook
+        failOnStderr: true
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: src/azdev-adapter-webhook/azdev-adapter-webhook.zip
+        artifactName: 'azdev-adapter-webhook'
