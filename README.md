@@ -13,6 +13,8 @@ The following lifecycle is adopted based on lifecycle, ownership and the frequen
 | 0     | Globals Loop                          | Admin                    | Admin                |
 | 1     | Platform Loop                         | Admin                    | Admin                |
 | 2     | Application Loop                      | Admin                    | Admin                |
+| 3     | Component Loop                        | Anyone                   | N/A                  |
+| 4     | Local Development Loop                | Anyone                   | N/A                  |
 
 ## Layer 0: Globals  Loop
 The Globals loop is used for bootstrapping resources to be managed by Cloudformation but shared by multiple stacks (or projects). 
@@ -65,6 +67,20 @@ The Application Loop contains the Cloudformation required to spin up Lambdas, Ro
 | Create the Application stack (and wait)       | ```npm run dev:app:create```   | ```npm run prod:app:create```  |
 | Update the Application stack  (and wait)      | ```npm run dev:app:update```   | ```npm run prod:app:update```  |
 | Destroy the Application stacK (and wait)      | ```npm run dev:app:destroy```  | ```npm run prod:app:destroy``` |
+
+## Layer 3: Component Loop (Cloud Update). ie: push code updates to components/Lambdas directly
+See the src/ component for more information. 
+
+For example: the Lambda / Function can be updated on demand using this workflow. Enter the src folder for the Lambda and run:
+
+| Description                             | dev                                 | prod                                |
+| ----------------------------------------| ------------------------------------| ----------------------------------- |
+| Pre-seed the application                | ```npm run dev:lambda:update```     | ```npm run prod:lambda:update```    |
+
+In the case of lambda, that will call update-function-code. 
+
+## Layer 4: Local Development Loop (TDD)
+See the src/ component for more information. 
 
 # Local Development (VsCode)
 To unify the experience between Mac, Linux and Windows, use the following VsCode Addin for all development on Windows (and optionally on Linux):
