@@ -1,0 +1,34 @@
+parameters:
+- name: lambdaName
+  type: string
+  default: theLambdaFolderNameInTheSrcFolder
+
+steps:
+- task: Bash@3
+  displayName: build
+  inputs:
+    targetType: 'inline'
+    script: npm run ci:build
+    workingDirectory: src/${{ parameters.lambdaName }}
+    failOnStderr: true
+
+- task: Bash@3
+  displayName: npm run test:unit
+  inputs:
+    targetType: 'inline'
+    script: npm run test:unit
+    workingDirectory: src/${{ parameters.lambdaName }}
+    failOnStderr: true
+
+- task: Bash@3
+  displayName: npm run pack
+  inputs:
+    targetType: 'inline'
+    script: npm run pack
+    workingDirectory: src/${{ parameters.lambdaName }}
+    failOnStderr: true
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: src/${{ parameters.lambdaName }}/${{ parameters.lambdaName }}.zip
+    artifactName: '${{ parameters.lambdaName }}'
