@@ -1,0 +1,20 @@
+trigger: none
+pr: 
+- main
+    
+name: 1.0$(Rev:.r)
+
+stages:
+- stage: BuildAndPublish
+  jobs:
+  - job: BuildLambda
+    displayName: Build Azure DevOps Lambda
+    pool:
+      vmImage: ubuntu-18.04
+
+    container: node:12-buster
+
+    steps:
+    - template: templates/build-and-publish-lambda.yml
+      parameters:
+        lambdaName: azdev-adapter-webhook

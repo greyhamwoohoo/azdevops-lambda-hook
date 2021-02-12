@@ -8,12 +8,14 @@ const fs = require('fs')
 const expect = chai.expect;
 var event = {}, context = { }, sandbox = { };
 var publishEventStub = { }
+var consoleErrorStub = { }
 
 describe('ServiceHook Lambda Tests', function () {
 
     beforeEach(function() {
         sandbox = sinon.createSandbox()
         publishEventStub = sandbox.stub(publisher, "publishEvent");
+        consoleErrorStub = sandbox.stub(console, "error");
     })
 
     afterEach(function() {
@@ -57,6 +59,15 @@ describe('ServiceHook Lambda Tests', function () {
                 
                 expect(publishEventStub.notCalled).to.be.true        
             });
+
+            it('will log an error', async () => {
+
+                event.body = null
+                
+                await app.lambdaHandler(event, context)
+                
+                expect(consoleErrorStub.calledOnce).to.be.true        
+            });            
             
             it('will return an error response to the notification provider', async () => {
                 
