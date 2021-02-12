@@ -6,8 +6,7 @@
   "author": "Greyhamwoohoo",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1",
-    "sinon": "^9.2.4"
+    "axios": "^0.21.1"
   },
   "scripts": {
     "test:unit": "mocha tests/unit/",
@@ -27,6 +26,7 @@
     "aws-sdk": "^2.815.0",
     "chai": "^4.2.0",
     "mocha": "^8.2.1",
-    "npm-pack-zip": "^1.2.7"
+    "npm-pack-zip": "^1.2.7",
+    "sinon": "^9.2.4"
   }
 }
