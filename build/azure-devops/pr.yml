@@ -6,6 +6,7 @@ name: 1.0$(Rev:.r)
 
 stages:
 - stage: BuildAndPublish
+  displayName: Build and Publish
   jobs:
   - job: BuildLambda
     displayName: Build Azure DevOps Lambda
@@ -18,3 +19,28 @@ stages:
     - template: templates/build-and-publish-lambda.yml
       parameters:
         lambdaName: azdev-adapter-webhook
+
+# Why not a Container Job?
+# The official amazon/aws-cli:2.1.26 (at least) container is not set up for Azure DevOps Container Usage: 'useradd' executable not found (etc)
+# More information here: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops
+#
+# AWS_SECRET_ACCESS_KEY: Be careful! If your key includes + or /, you might get SignatureDoesNotMatch errors (or similar)
+# More information here: https://github.com/aws/aws-cli/issues/602
+# In summary: generate AWS Credentials until they do not have a + or /. 
+#
+# Try as I may: I could not get aws cli working with Bash@3 on Ubuntu or with PowerShell@2 on Windows: the AWS Toolkit for Azure DevOps does work (on Windows VM Pool)
+# Create a Service Connection to AWS; give this YAML Pipeline permission to access the Service Connection Resource; and put that resource name in the awsCredentials property of the AWS Task
+#    See: templates/validate-cf-template.yml
+#    See: (for Service Connection): https://docs.aws.amazon.com/vsts/latest/userguide/getting-started.html#set-up-aws-credentials-for-the-aws-tools-for-vsts
+#    Turn off PR builds for Forks (and especially sharing of secrets): https://docs.microsoft.com/en-us/azure/devops/pipelines/security/repos?view=azure-devops
+#    Recommendation: Manually trigger fork builds using comments
+- stage: ValidateCfTemplates
+  dependsOn: []
+  jobs:
+  - job: Validate
+    displayName: Validate
+    pool:
+      vmImage: windows-2019
+
+    steps:
+    - template: templates/validate-cf-templates.yml

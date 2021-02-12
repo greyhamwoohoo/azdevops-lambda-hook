@@ -17,3 +17,15 @@ stages:
     - template: templates/build-and-publish-lambda.yml
       parameters:
         lambdaName: azdev-adapter-webhook
+        
+- stage: AWSCFValidateTemplates
+  displayName: "AWS CF: validate-templates"
+  dependsOn: []
+  jobs:
+  - job: Validate
+    displayName: Validate Stacks
+    pool:
+      vmImage: windows-2019
+
+    steps:
+    - template: templates/validate-cf-templates.yml

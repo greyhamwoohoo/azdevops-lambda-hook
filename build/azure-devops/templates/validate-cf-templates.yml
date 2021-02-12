@@ -1,0 +1,15 @@
+steps:
+- template: validate-cf-template.yml
+  parameters:
+    templateBodyPath: file://$BUILD_SOURCESDIRECTORY/infra/globals/globals.yaml
+    displayName: globals.yml
+
+- template: validate-cf-template.yml
+  parameters:
+    templateBodyPath: file://$BUILD_SOURCESDIRECTORY/infra/application/application.yaml        
+    displayName: application.yml
+
+- template: validate-cf-template.yml
+  parameters:
+    templateBodyPath: file://$BUILD_SOURCESDIRECTORY/infra/platform/foundation.yaml            
+    displayName: platform.yml

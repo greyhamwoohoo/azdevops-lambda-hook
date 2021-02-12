@@ -32,6 +32,7 @@ The following commands are available:
 | Check if Turkana is bootstrapped            | ```npm run globals:ready```               |
 | Bootstrap Turkana                           | ```npm run globals:create```              |
 | Update bootstrapping                        | ```npm run globals:update```              |
+| Validate the stack template                 | ```npm run globals:validate-template```   |
 | Gets the S3 Bucket Name                     | ```npm run globals:s3bucketname```        |
 
 There is no destroy as the S3 bucket will not be deleted by a Cloudformation delete-stack.
