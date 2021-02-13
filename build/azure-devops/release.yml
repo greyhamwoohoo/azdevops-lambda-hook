@@ -1,4 +1,5 @@
-trigger: none
+trigger: 
+- master
 pr: none
     
 name: 1.0$(Rev:.r)
