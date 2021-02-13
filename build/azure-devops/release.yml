@@ -6,6 +6,7 @@ name: 1.0$(Rev:.r)
 
 variables:
 - group: azdevops-lambda-hook-globals
+- group: azdevops-lambda-hook-prod
 
 stages:
 - stage: BuildAndPublish
@@ -46,7 +47,7 @@ stages:
 
     steps:
     - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
-      displayName: 'globals-update-start'
+      displayName: 'globals-deploy-start'
       inputs:
         awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
         regionName: 'ap-southeast-2'
@@ -56,11 +57,11 @@ stages:
         failOnStandardError: true
 
     - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
-      displayName: 'globals-update-wait'
+      displayName: 'platform-deploy-start'
       inputs:
         awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
         regionName: 'ap-southeast-2'
         awsCommand: cloudformation
-        awsSubCommand: wait
-        awsArguments: stack-update-complete --stack-name turkana-globals
-        failOnStandardError: true        
+        awsSubCommand: deploy
+        awsArguments: --stack-name turkana-prod-platform --no-fail-on-empty-changeset --template-file ./infra/platform/foundation.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaDomainNameParameter=$(TurkanaDomainNameParameter) TurkanaEnableApiGatewayLogging=$(TurkanaEnableApiGatewayLogging) TurkanaEnvironmentParameter=$(TurkanaEnvironmentParameter) TurkanaHostedZoneIdParameter=$(TurkanaHostedZoneIdParameter) TurkanaRegionalCertificateArnParameter=$(TurkanaRegionalCertificateArnParameter)
+        failOnStandardError: true
