@@ -1,5 +1,5 @@
 trigger: 
-- master
+- main
 pr: none
     
 name: 1.0$(Rev:.r)
