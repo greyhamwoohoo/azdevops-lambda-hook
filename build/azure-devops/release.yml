@@ -1,4 +1,5 @@
-trigger: none
+trigger: 
+- master
 pr: none
     
 name: 1.0$(Rev:.r)
@@ -17,3 +18,15 @@ stages:
     - template: templates/build-and-publish-lambda.yml
       parameters:
         lambdaName: azdev-adapter-webhook
+
+- stage: AWSCloudformation
+  displayName: "AWS Cloudformation"
+  dependsOn: []
+  jobs:
+  - job: ValidateTemplates
+    displayName: Validate Templates
+    pool:
+      vmImage: windows-2019
+
+    steps:
+    - template: templates/validate-cf-templates.yml

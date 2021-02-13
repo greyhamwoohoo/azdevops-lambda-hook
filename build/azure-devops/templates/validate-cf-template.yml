@@ -1,0 +1,22 @@
+parameters:
+- name: templateBodyPath
+  type: string
+  default: thePathToTheYamlFile
+- name: displayName
+  type: string
+  default: theDisplayName
+
+#
+# awsCredentials: This is the name of a Service Connection set up in Azure DevOps
+# See: https://docs.aws.amazon.com/vsts/latest/userguide/getting-started.html#set-up-aws-credentials-for-the-aws-tools-for-vsts
+#
+steps:
+- task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+  displayName: 'AWS: validate ${{ parameters.displayName }}'
+  inputs:
+    awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
+    regionName: 'ap-southeast-2'
+    awsCommand: cloudformation
+    awsSubCommand: validate-template
+    awsArguments: --template-body ${{ parameters.templateBodyPath }}
+    failOnStandardError: true
