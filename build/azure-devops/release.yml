@@ -22,8 +22,8 @@ stages:
       parameters:
         lambdaName: azdev-adapter-webhook
 
-- stage: AWSCloudformation
-  displayName: "AWS Cloudformation"
+- stage: AWSCFValidate
+  displayName: "Validate Cloudformation"
   dependsOn: []
   jobs:
   - job: ValidateTemplates
@@ -34,6 +34,17 @@ stages:
     steps:
     - template: templates/validate-cf-templates.yml
 
+# TODO: Use Environment and Deployment 
+- stage: AWSCFStacksDeploy
+  displayName: "Deploy Cloudformation"
+  dependsOn: ['BuildAndPublish', 'AWSCFValidate']
+  jobs:
+  - job: DeployStacks
+    displayName: Deploy Production
+    pool:
+      vmImage: windows-2019
+
+    steps:
     - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
       displayName: 'globals-update-start'
       inputs:
@@ -51,5 +62,5 @@ stages:
         regionName: 'ap-southeast-2'
         awsCommand: cloudformation
         awsSubCommand: wait
-        awsArguments: stack-update-complete --stack-name turkana-gloals
+        awsArguments: stack-update-complete --stack-name turkana-globals
         failOnStandardError: true        
