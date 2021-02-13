@@ -25,7 +25,7 @@ stages:
         lambdaName: azdev-adapter-webhook
 
 - stage: AWSCFValidate
-  displayName: "Validate"
+  displayName: "Validate Stacks"
   dependsOn: []
   jobs:
   - job: ValidateTemplates
@@ -67,7 +67,7 @@ stages:
 
 # TODO: Use Environment and Deployment 
 - stage: AWSCFStacksDeploy
-  displayName: "Deploy"
+  displayName: "Deploy Stacks"
   dependsOn: ['AWSCFSeedLambdas']
   jobs:
   - job: DeployStacks
@@ -124,7 +124,7 @@ stages:
         path: $(Pipeline.Workspace)/Input/azdev-adapter-webhook
 
     - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
-      displayName: 'cp azdev-adapter-webhook'
+      displayName: 'update azdev-adapter-webhook'
       inputs:
         awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
         regionName: 'ap-southeast-2'
