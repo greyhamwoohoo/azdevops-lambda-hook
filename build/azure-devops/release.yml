@@ -65,3 +65,13 @@ stages:
         awsSubCommand: deploy
         awsArguments: --stack-name turkana-prod-platform --no-fail-on-empty-changeset --template-file ./infra/platform/foundation.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaDomainNameParameter=$(TurkanaDomainNameParameter) TurkanaEnableApiGatewayLogging=$(TurkanaEnableApiGatewayLogging) TurkanaEnvironmentParameter=$(TurkanaEnvironmentParameter) TurkanaHostedZoneIdParameter=$(TurkanaHostedZoneIdParameter) TurkanaRegionalCertificateArnParameter=$(TurkanaRegionalCertificateArnParameter)
         failOnStandardError: true
+
+    - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+      displayName: 'app-deploy-start'
+      inputs:
+        awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
+        regionName: 'ap-southeast-2'
+        awsCommand: cloudformation
+        awsSubCommand: deploy
+        awsArguments: --stack-name turkana-prod-application --no-fail-on-empty-changeset --template-file ./infra/application/application.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaEnvironmentParameter=$(TurkanaEnvironmentParameter) TurkanaAzDevAdapterWebhookApiKey=$(TurkanaAzDevAdapterWebhookApiKey)
+        failOnStandardError: true        
