@@ -34,11 +34,12 @@ stages:
 #    See: (for Service Connection): https://docs.aws.amazon.com/vsts/latest/userguide/getting-started.html#set-up-aws-credentials-for-the-aws-tools-for-vsts
 #    Turn off PR builds for Forks (and especially sharing of secrets): https://docs.microsoft.com/en-us/azure/devops/pipelines/security/repos?view=azure-devops
 #    Recommendation: Manually trigger fork builds using comments
-- stage: ValidateCfTemplates
+- stage: AWSCFValidateTemplates
+  displayName: "AWS CF: validate-templates"
   dependsOn: []
   jobs:
   - job: Validate
-    displayName: Validate
+    displayName: Validate Stacks
     pool:
       vmImage: windows-2019
 

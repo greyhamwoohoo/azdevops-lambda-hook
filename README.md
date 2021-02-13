@@ -93,10 +93,22 @@ To unify the experience between Mac, Linux and Windows, use the following VsCode
 * Remote - Containers (ms-vscode-remote.remote-containers)
 
 ## To work in the VsCode DevContainer (Windows: Mandatory; Linux/MacOS: optional)
-Run the Command: Remote-Containers - Open Folder in Container... and select the root of the repository. Confirm you can see you AWS keys:
+Run the Command: Remote-Containers - Open Folder in Container... and select the root of the repository. Confirm you can see your AWS keys:
 
 ```bash
 set | grep AWS
 ```
 
 NOTE: The assumption is that AWS_ACCESS_KEY, AWS_REGION and AWS_SECRET_ACCESS_KEY are defined on your host. 
+
+# CI/CD and PR Security
+The PR process will build and publish all Lambdas as artifacts; and run 'aws cloudformation validate-template' on all stacks. 
+
+PR pipelines triggered in Azure DevOps by Github must be locked down, lest nefarious individuals running PR builds on repo forks can get hold of your secrets or perhaps run arbitrary code on your self-hosted Agents.
+
+After adding the PR trigger to Azure DevOps:
+
+| Step | Description |
+| ---- | ----------- |
+| 1    | Disable Fork Builds and Secrets. By default (as of 13/02/2021), new piplines are automatically triggered for pull requests from forks of your repository (the documentation is contradictory on this matter) - we need to disable those insecure defaults:<br /><br />![Disable Forks and Secrets](docs/disable-fork-builds-and-secrets.png)<br /><br />Reference: https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#validate-contributions-from-forks <br /><br />Repository Protection: https://docs.microsoft.com/en-us/azure/devops/pipelines/security/repos?view=azure-devops |
+| 2    | Ensure the AWS Service Connection is only accessible from specific Pipelines: <br /><br /> ![Disable Forks and Secrets](docs/pipeline-security.png)|
