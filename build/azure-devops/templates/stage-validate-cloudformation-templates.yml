@@ -1,3 +1,8 @@
+parameters:
+- name: stageName
+  type: string
+  default: AWSCloudformation
+  
 # Why not a Container Job?
 # The official amazon/aws-cli:2.1.26 (at least) container is not set up for Azure DevOps Container Usage: 'useradd' executable not found (etc)
 # More information here: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops
@@ -13,7 +18,7 @@
 #    Turn off PR builds for Forks (and especially sharing of secrets): https://docs.microsoft.com/en-us/azure/devops/pipelines/security/repos?view=azure-devops
 #    Recommendation: Manually trigger fork builds using comments
 stages:
-- stage: AWSCloudformation
+- stage: ${{ parameters.stageName }}
   displayName: "AWS Cloudformation"
   dependsOn: []
   jobs:
