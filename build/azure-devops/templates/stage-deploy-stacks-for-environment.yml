@@ -1,0 +1,53 @@
+parameters:
+- name: stageName
+  type: string
+  default: AWSCFStacksDeploy
+- name: environmentName
+  type: string
+  default: dev
+- name: dependsOnStage
+  type: string
+  default: theOtherStage
+  
+# TODO: Use 'deployment' and 'environment' (with approvals)
+# TODO: 'globals' is its own stack; use an Environment with throttling to ensure only one at a time
+stages:
+- stage: ${{ parameters.stageName }}
+  displayName: "Deploy Stacks"
+  dependsOn: ${{ parameters.dependsOnStage }}
+  jobs:
+  - job: DeployStacks
+    displayName: Deploy ${{ parameters.environmentName }}
+    pool:
+      vmImage: windows-2019
+
+    steps:
+    - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+      displayName: 'globals-deploy-start'
+      inputs:
+        awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
+        regionName: 'ap-southeast-2'
+        awsCommand: cloudformation
+        awsSubCommand: deploy
+        awsArguments: --stack-name turkana-globals --no-fail-on-empty-changeset --template-file ./infra/globals/globals.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaS3BucketNameParameter=$(TurkanaS3BucketNameParameter)
+        failOnStandardError: true
+
+    - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+      displayName: 'platform-deploy-start'
+      inputs:
+        awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
+        regionName: 'ap-southeast-2'
+        awsCommand: cloudformation
+        awsSubCommand: deploy
+        awsArguments: --stack-name turkana-${{ parameters.environmentName }}-platform --no-fail-on-empty-changeset --template-file ./infra/platform/foundation.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaDomainNameParameter=$(TurkanaDomainNameParameter) TurkanaEnableApiGatewayLogging=$(TurkanaEnableApiGatewayLogging) TurkanaEnvironmentParameter=${{ parameters.environmentName }} TurkanaHostedZoneIdParameter=$(TurkanaHostedZoneIdParameter) TurkanaRegionalCertificateArnParameter=$(TurkanaRegionalCertificateArnParameter)
+        failOnStandardError: true
+
+    - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+      displayName: 'app-deploy-start'
+      inputs:
+        awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
+        regionName: 'ap-southeast-2'
+        awsCommand: cloudformation
+        awsSubCommand: deploy
+        awsArguments: --stack-name turkana-${{ parameters.environmentName }}-application --no-fail-on-empty-changeset --template-file ./infra/application/application.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaEnvironmentParameter=${{ parameters.environmentName }} TurkanaAzDevAdapterWebhookApiKey=$(TurkanaAzDevAdapterWebhookApiKey)
+        failOnStandardError: true        

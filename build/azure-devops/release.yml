@@ -1,7 +1,7 @@
 trigger: 
 - main
 pr: none
-    
+
 name: 1.0$(Rev:.r)
 
 variables:
@@ -9,32 +9,13 @@ variables:
 - group: azdevops-lambda-hook-prod
 
 stages:
-- stage: BuildAndPublish
-  displayName: Build and Publish
-  jobs:
-  - job: BuildLambdas
-    displayName: Build Azure DevOps Lambda
-    pool:
-      vmImage: ubuntu-18.04
+- template: templates/stage-build-and-publish-lambdas.yml
+  parameters:
+    stageName: BuildAndPublish
 
-    container: node:12-buster
-
-    steps:
-    - template: templates/build-and-publish-lambda.yml
-      parameters:
-        lambdaName: azdev-adapter-webhook
-
-- stage: AWSCFValidate
-  displayName: "Validate Stacks"
-  dependsOn: []
-  jobs:
-  - job: ValidateTemplates
-    displayName: Validate Templates
-    pool:
-      vmImage: windows-2019
-
-    steps:
-    - template: templates/validate-cf-templates.yml
+- template: templates/stage-validate-cloudformation-templates.yml
+  parameters:
+    stageName: AWSCFValidate
 
 - stage: AWSCFSeedLambdas
   displayName: "Seed Lambdas"
@@ -63,48 +44,13 @@ stages:
         awsCommand: s3
         awsSubCommand: cp
         awsArguments: $(Pipeline.Workspace)/Input/azdev-adapter-webhook/azdev-adapter-webhook.zip s3://$(TurkanaS3BucketNameParameter)/private/$(TurkanaEnvironmentParameter)/azdev-adapter-webhook/azdev-adapter-webhook.zip
-        failOnStandardError: true        
+        failOnStandardError: true      
 
-# TODO: Use Environment and Deployment 
-- stage: AWSCFStacksDeploy
-  displayName: "Deploy Stacks"
-  dependsOn: ['AWSCFSeedLambdas']
-  jobs:
-  - job: DeployStacks
-    displayName: Deploy Production
-    pool:
-      vmImage: windows-2019
-
-    steps:
-    - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
-      displayName: 'globals-deploy-start'
-      inputs:
-        awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
-        regionName: 'ap-southeast-2'
-        awsCommand: cloudformation
-        awsSubCommand: deploy
-        awsArguments: --stack-name turkana-globals --no-fail-on-empty-changeset --template-file ./infra/globals/globals.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaS3BucketNameParameter=$(TurkanaS3BucketNameParameter)
-        failOnStandardError: true
-
-    - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
-      displayName: 'platform-deploy-start'
-      inputs:
-        awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
-        regionName: 'ap-southeast-2'
-        awsCommand: cloudformation
-        awsSubCommand: deploy
-        awsArguments: --stack-name turkana-prod-platform --no-fail-on-empty-changeset --template-file ./infra/platform/foundation.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaDomainNameParameter=$(TurkanaDomainNameParameter) TurkanaEnableApiGatewayLogging=$(TurkanaEnableApiGatewayLogging) TurkanaEnvironmentParameter=$(TurkanaEnvironmentParameter) TurkanaHostedZoneIdParameter=$(TurkanaHostedZoneIdParameter) TurkanaRegionalCertificateArnParameter=$(TurkanaRegionalCertificateArnParameter)
-        failOnStandardError: true
-
-    - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
-      displayName: 'app-deploy-start'
-      inputs:
-        awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
-        regionName: 'ap-southeast-2'
-        awsCommand: cloudformation
-        awsSubCommand: deploy
-        awsArguments: --stack-name turkana-prod-application --no-fail-on-empty-changeset --template-file ./infra/application/application.yaml --capabilities CAPABILITY_IAM --parameter-overrides TurkanaEnvironmentParameter=$(TurkanaEnvironmentParameter) TurkanaAzDevAdapterWebhookApiKey=$(TurkanaAzDevAdapterWebhookApiKey)
-        failOnStandardError: true        
+- template: templates/stage-deploy-stacks-for-environment.yml
+  parameters:
+    stageName: AWSCFStacksDeploy
+    environmentName: prod
+    dependsOnStage: AWSCFSeedLambdas
 
 - stage: AWSCFLambdasDeploy
   displayName: "Deploy Lambdas"

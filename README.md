@@ -1,6 +1,8 @@
 # azdevops-lambda-hook
 An Azure DevOps ServiceHook implemented as a NodeJS Lambda on AWS using Cloudformation. 
 
+In practice: the Azure DevOps ServiceHook is trivial; most of this repo is about the Cloudformation and CI/CD work to support it :)
+
 The Lambda is exposed using HTTPS via a subdomain (ie: dev-turkana.greyhamwoohoo.com/v1/webhook, turkana.greyhamwoohoo.com/v1/webhook) and requires an API Key. Each 'environment' can have its own sub-domain. 
 
 Shows an opinionated way to work with AWS Cloudformation and Lambas by using "Layers" separated by Lifecyle and Ownership.
@@ -101,9 +103,15 @@ set | grep AWS
 
 NOTE: The assumption is that AWS_ACCESS_KEY, AWS_REGION and AWS_SECRET_ACCESS_KEY are defined on your host. 
 
-# CI/CD and PR Security
-The PR process will build and publish all Lambdas as artifacts; and run 'aws cloudformation validate-template' on all stacks. 
+# CI/CD Pipelines
+There are two pipelines:
 
+| Pipeline    | Description                                                                                               |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| pr.yml      | Builds and publishes all Lambda artifacts; and validates the cloudformation templates                     | 
+| Release.yml | Builds and publishes Lambdas; validates stacks; seeds Lambdas; deploys stacks; updates Lambda code in AWS | 
+
+## PR Security
 PR pipelines triggered in Azure DevOps by Github must be locked down, lest nefarious individuals running PR builds on repo forks can get hold of your secrets or perhaps run arbitrary code on your self-hosted Agents.
 
 After adding the PR trigger to Azure DevOps:
