@@ -1,0 +1,24 @@
+parameters:
+- name: lambdaName
+  type: string
+  default: theLambdaFolderNameInTheSrcFolder
+
+steps:
+- task: DownloadPipelineArtifact@2
+  displayName: "Download ${{ parameters.lambdaName }}"
+  inputs:
+    source: current
+    artifact: ${{ parameters.lambdaName }}
+    path: $(Pipeline.Workspace)/Input/${{ parameters.lambdaName }}
+
+# We could be smart about this and only copy the Lambda zip if it does not exist, but...
+# AWS will only update the Lambda code when update-function-code is called. So this is harmless without smarts. And we need the Zip around to create the Stack for the first time.
+- task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+  displayName: 'cp ${{ parameters.lambdaName }}'
+  inputs:
+    awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
+    regionName: 'ap-southeast-2'
+    awsCommand: s3
+    awsSubCommand: cp
+    awsArguments: $(Pipeline.Workspace)/Input/${{ parameters.lambdaName }}/${{ parameters.lambdaName }}.zip s3://$(TurkanaS3BucketNameParameter)/private/$(TurkanaEnvironmentParameter)/${{ parameters.lambdaName }}/${{ parameters.lambdaName }}.zip
+    failOnStandardError: true

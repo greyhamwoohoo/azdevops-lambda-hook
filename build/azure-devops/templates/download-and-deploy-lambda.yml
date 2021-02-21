@@ -1,0 +1,23 @@
+parameters:
+- name: lambdaName
+  type: string
+  default: theLambdaFolderNameInTheSrcFolder
+
+steps:
+- task: DownloadPipelineArtifact@2
+  displayName: "Download ${{ parameters.lambdaName }}"
+  inputs:
+    source: current
+    artifact: ${{ parameters.lambdaName }}
+    path: $(Pipeline.Workspace)/Input/${{ parameters.lambdaName }}
+
+# NOTE: The hard coded -prod- in awsArguments is the lambda *STAGE*. No canaries at the moment :)
+- task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+  displayName: 'update ${{ parameters.lambdaName }}'
+  inputs:
+    awsCredentials: 'cloudformation.ap-southeast-2.amazonaws.com'      
+    regionName: 'ap-southeast-2'
+    awsCommand: lambda
+    awsSubCommand: update-function-code
+    awsArguments: --function-name turkana-$(TurkanaEnvironmentParameter)-prod-${{ parameters.lambdaName }} --zip-file fileb://$(Pipeline.Workspace)/Input/${{ parameters.lambdaName }}/${{ parameters.lambdaName }}.zip
+    failOnStandardError: true

@@ -1,0 +1,32 @@
+parameters:
+- name: environmentName
+  type: string
+  default: dev
+
+stages:
+- template: stage-build-and-publish-lambdas.yml
+  parameters:
+    stageName: BuildAndPublish
+
+- template: stage-validate-cloudformation-templates.yml
+  parameters:
+    stageName: AWSCFValidate
+
+- template: stage-download-and-seed-lambdas.yml
+  parameters:
+    stageName: AWSCFSeedLambdas
+    dependsOnStage:
+    - BuildAndPublish
+    - AWSCFValidate
+
+- template: stage-deploy-stacks-for-environment.yml
+  parameters:
+    stageName: AWSCFStacksDeploy
+    environmentName: ${{ parameters.environmentName }}
+    dependsOnStage: AWSCFSeedLambdas
+
+- template: stage-download-and-deploy-lambdas.yml
+  parameters:
+    stageName: AWSCFLambdasDeploy
+    environmentName: ${{ parameters.environmentName }}
+    dependsOnStage: AWSCFStacksDeploy  
