@@ -1,0 +1,25 @@
+parameters:
+- name: stageName
+  type: string
+  default: AWSCFSeedLambdas
+- name: environmentName
+  type: string
+  default: dev
+- name: dependsOnStage
+  type: object
+  default: []
+  
+stages:
+- stage: ${{ parameters.stageName }}
+  displayName: "Seed Lambdas"
+  dependsOn: ${{ parameters.dependsOnStage }}
+  jobs:
+  - job: SeedLambdas
+    displayName: Seed Lambdas
+    pool:
+      vmImage: windows-2019
+
+    steps:
+    - template: download-and-seed-lambda.yml
+      parameters:
+        lambdaName: azdev-adapter-webhook

@@ -1,0 +1,25 @@
+parameters:
+- name: stageName
+  type: string
+  default: AWSCFLambdasDeploy
+- name: environmentName
+  type: string
+  default: dev
+- name: dependsOnStage
+  type: object
+  default: []
+  
+stages:
+- stage: ${{ parameters.stageName }}
+  displayName: "Deploy Lambdas"
+  dependsOn: ${{ parameters.dependsOnStage }}
+  jobs:
+  - job: DeployLambdas
+    displayName: Deploy Lambdas
+    pool:
+      vmImage: windows-2019
+
+    steps:
+    - template: download-and-deploy-lambda.yml
+      parameters:
+        lambdaName: azdev-adapter-webhook
