@@ -6,7 +6,7 @@
   "author": "Greyhamwoohoo",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1"
+    "axios": "^0.21.4"
   },
   "scripts": {
     "test:unit": "mocha tests/unit/",
@@ -23,10 +23,10 @@
     "dev:lambda:pre-seed": "npm run clean && npm run build && npm run pack && npm run dev:lambda:push-to-s3"
   },
   "devDependencies": {
-    "aws-sdk": "^2.815.0",
-    "chai": "^4.2.0",
-    "mocha": "^8.2.1",
-    "npm-pack-zip": "^1.2.7",
+    "aws-sdk": "^2.987.0",
+    "chai": "^4.3.4",
+    "mocha": "^8.4.0",
+    "npm-pack-zip": "^1.2.9",
     "sinon": "^9.2.4"
   }
 }
